@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleIdentifier</key><string>net.meyershome.AirPlayKeys</string>
+    <key>CFBundleExecutable</key><string>AirPlayKeys</string>
+    <key>CFBundleName</key><string>AirPlayKeys</string>
+    <key>CFBundleDisplayName</key><string>AirPlayKeys</string>
+    <key>CFBundlePackageType</key><string>APPL</string>
+    <key>CFBundleShortVersionString</key><string>0.2.0</string>
+    <key>CFBundleVersion</key><string>2</string>
+    <key>CFBundleIconFile</key><string>AppIcon</string>
+    <key>LSMinimumSystemVersion</key><string>12.0</string>
+    <key>LSUIElement</key><true/>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>AirPlayKeys benötigt die Erlaubnis, die Lautstärke der in Apple Music ausgewählten AirPlay-Lautsprecher zu steuern.</string>
+    <key>NSHighResolutionCapable</key><true/>
+</dict>
+</plist>
