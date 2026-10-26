@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="waves" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2b75f3"/>
+      <stop offset="1" stop-color="#258aff"/>
+    </linearGradient>
+    <linearGradient id="face" x1="0" y1="0" x2="0.2" y2="1">
+      <stop stop-color="#ffffff"/><stop offset="1" stop-color="#eaeef6"/>
+    </linearGradient>
+    <filter id="shadow" x="-25%" y="-25%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="22"/>
+    </filter>
+  </defs>
+  <rect x="100" y="112" width="824" height="824" rx="193" fill="#172a44" opacity="0.20" filter="url(#shadow)"/>
+  <rect x="88" y="77" width="848" height="848" rx="203" fill="url(#face)" stroke="#dce2ea" stroke-width="8"/>
+  <g fill="none" stroke="url(#waves)" stroke-width="57" stroke-linecap="round">
+    <path d="M244 338 Q512 76 780 338"/>
+    <path d="M317 412 Q512 221 707 412"/>
+    <path d="M393 486 Q512 371 631 486"/>
+  </g>
+  <g fill="#172234">
+    <path d="M274 631 Q274 605 300 605 H373 L496 517 Q528 494 528 529 V800 Q528 836 496 812 L373 724 H300 Q274 724 274 698 Z"/>
+  </g>
+  <g fill="none" stroke="#172234" stroke-width="43" stroke-linecap="round">
+    <path d="M582 601 Q657 664 582 731"/>
+    <path d="M646 551 Q782 660 646 780"/>
+  </g>
+</svg>
