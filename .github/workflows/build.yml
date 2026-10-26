@@ -1,0 +1,20 @@
+name: macOS Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - name: Check out sources
+        uses: actions/checkout@v4
+      - name: Build AirPlayKeys
+        run: ./build.sh
+      - name: Inspect app bundle
+        run: |
+          test -x build/AirPlayKeys.app/Contents/MacOS/AirPlayKeys
+          test -s build/AirPlayKeys.app/Contents/Resources/AppIcon.icns
+          codesign --verify build/AirPlayKeys.app
