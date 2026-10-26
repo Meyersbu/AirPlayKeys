@@ -15,6 +15,8 @@ private final class AirPlayKeysApp: NSObject, NSApplicationDelegate {
     private let musicQueue = DispatchQueue(label: "net.meyershome.AirPlayKeys.Music")
     private var statusItem: NSStatusItem!
     private var statusMenuItem: NSMenuItem!
+    private var tapStatusMenuItem: NSMenuItem!
+    private var lastKeyMenuItem: NSMenuItem!
     private var captureMenuItem: NSMenuItem!
     private var louderMenuItem: NSMenuItem!
     private var quieterMenuItem: NSMenuItem!
@@ -23,7 +25,8 @@ private final class AirPlayKeysApp: NSObject, NSApplicationDelegate {
     private var source: CFRunLoopSource?
     private var hasAirPlay = false
     private var isChecking = false
-    private var enabled = UserDefaults.standard.object(forKey: "captureEnabled") as? Bool ?? true
+    // Each launch begins enabled; an old persisted off state could make keys appear broken.
+    private var enabled = true
     private var statusText = "Verbinde mit Apple Music …"
     private var lastError: String?
 
@@ -33,7 +36,10 @@ private final class AirPlayKeysApp: NSObject, NSApplicationDelegate {
         installTap()
         checkAirPlay()
         Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { [weak self] _ in
-            self?.checkAirPlay()
+            guard let self else { return }
+            // Reconnect automatically after Accessibility was approved in System Settings.
+            if self.tap == nil && AXIsProcessTrusted() { self.installTap() }
+            self.checkAirPlay()
         }
     }
 
@@ -63,6 +69,12 @@ private final class AirPlayKeysApp: NSObject, NSApplicationDelegate {
         statusMenuItem = menuItem(statusText)
         statusMenuItem.isEnabled = false
         menu.addItem(statusMenuItem)
+        tapStatusMenuItem = menuItem("Tastatur: Prüfe Zugriff …")
+        tapStatusMenuItem.isEnabled = false
+        menu.addItem(tapStatusMenuItem)
+        lastKeyMenuItem = menuItem("Letzte Taste: —")
+        lastKeyMenuItem.isEnabled = false
+        menu.addItem(lastKeyMenuItem)
         menu.addItem(.separator())
 
         louderMenuItem = menuItem("Lauter", symbol: "speaker.wave.3", action: #selector(louder))
@@ -87,9 +99,18 @@ private final class AirPlayKeysApp: NSObject, NSApplicationDelegate {
         statusMenuItem.title = statusText
         statusItem.button?.toolTip = "AirPlayKeys · \(statusText)"
         captureMenuItem.state = enabled ? .on : .off
-        louderMenuItem.isEnabled = hasAirPlay
-        quieterMenuItem.isEnabled = hasAirPlay
-        muteMenuItem.isEnabled = hasAirPlay
+        if !AXIsProcessTrusted() {
+            tapStatusMenuItem.title = "Tastatur: Bedienungshilfen fehlen"
+        } else if let tap, CGEvent.tapIsEnabled(tap: tap) {
+            tapStatusMenuItem.title = enabled ? "Tastatur: Aktiv" : "Tastatur: Pausiert"
+        } else {
+            tapStatusMenuItem.title = "Tastatur: Event-Tap nicht aktiv"
+        }
+        // Keep menu controls available for diagnosing Apple Music automation separately.
+        let musicAvailable = !NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.Music").isEmpty
+        louderMenuItem.isEnabled = musicAvailable
+        quieterMenuItem.isEnabled = musicAvailable
+        muteMenuItem.isEnabled = musicAvailable
     }
 
     private func installTap() {
@@ -135,7 +156,16 @@ private final class AirPlayKeysApp: NSObject, NSApplicationDelegate {
         let data = keyEvent.data1
         let keyCode = (data >> 16) & 0xFFFF
         let state = (data >> 8) & 0xFF
-        guard let key = MediaKey(rawValue: keyCode), enabled, hasAirPlay else {
+        guard let key = MediaKey(rawValue: keyCode) else {
+            return Unmanaged.passUnretained(event)
+        }
+        if state == 0xA {
+            // Diagnostics: keys detected even if no AirPlay speaker is currently selected.
+            DispatchQueue.main.async { [weak self] in
+                self?.lastKeyMenuItem.title = "Letzte Taste: \(key == .mute ? "F10" : key == .quieter ? "F11" : "F12")"
+            }
+        }
+        guard enabled, hasAirPlay else {
             return Unmanaged.passUnretained(event)
         }
         if state == 0xA { perform(key) }
@@ -235,7 +265,6 @@ private final class AirPlayKeysApp: NSObject, NSApplicationDelegate {
     @objc private func recheck() { installTap(); checkAirPlay() }
     @objc private func toggleCapture() {
         enabled.toggle()
-        UserDefaults.standard.set(enabled, forKey: "captureEnabled")
         updateStatus()
     }
     @objc private func openMusic() {
